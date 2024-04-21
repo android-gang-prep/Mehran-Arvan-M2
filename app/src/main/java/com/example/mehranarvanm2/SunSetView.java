@@ -66,7 +66,6 @@ public class SunSetView extends View {
 
         visiblePaint = new Paint();
         visiblePaint.setStyle(Paint.Style.STROKE);
-        visiblePaint.setShader(new LinearGradient(0, 0, 0, 0, Color.parseColor("#ffdc39"), Color.parseColor("#fe6d01"), Shader.TileMode.CLAMP));
         visiblePaint.setStrokeWidth(dpToPx(5));
 
 
@@ -89,6 +88,8 @@ public class SunSetView extends View {
 
         visible.reset();
         pathMeasure.getSegment(0, pathMeasure.getLength() * progress, visible, true);
+        visiblePaint.setShader(new LinearGradient(0, 0, getWidth(), 0, Color.parseColor("#ffdc39"), Color.parseColor("#fe6d01"), Shader.TileMode.CLAMP));
+
         canvas.drawPath(visible, visiblePaint);
         pathMeasure.getPosTan(pathMeasure.getLength() * progress, pos, new float[2]);
 
@@ -96,7 +97,7 @@ public class SunSetView extends View {
                 R.drawable.sunn);
 
 
-        canvas.drawBitmap(Bitmap.createScaledBitmap(bitmap, (int) dpToPx(30), (int) dpToPx(30), false), pos[0]-dpToPx(15), pos[1]-dpToPx(50), white);
+        canvas.drawBitmap(Bitmap.createScaledBitmap(bitmap, (int) dpToPx(30), (int) dpToPx(30), false), pos[0]-dpToPx(15), pos[1]-dpToPx(15), white);
 
 
 

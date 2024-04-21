@@ -41,112 +41,7 @@ import okhttp3.Response;
 public class DataActivity extends AppCompatActivity {
 
     DataActivityBinding binding;
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    private OkHttpClient client;
-    private String data;
-    private DocumentBuilder documentBuilder;
-    private Document document;
 
-
- /*   public List<String> parse(String name) throws XmlPullParserException, IOException {
-        try {
-            XmlPullParser parser = Xml.newPullParser();
-            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser.setInput(new StringReader(data));
-            parser.nextTag();
-            return readFeed(parser, name);
-        } finally {
-        }
-    }
-
-    private List<String> readFeed(XmlPullParser parser, String n) throws XmlPullParserException, IOException {
-
-        while (parser.next() != XmlPullParser.END_TAG) {
-           *//* if (parser.getEventType() != XmlPullParser.START_TAG) {
-                continue;
-            }*//*
-            String name = parser.getName();
-            if (name.equals("data")) {
-                return readData(parser, n);
-            } else {
-                skip(parser);
-            }
-        }
-        return new ArrayList<>();
-    }
-
-
-    private List<String> readData(XmlPullParser parser, String n) throws XmlPullParserException, IOException {
-
-        while (parser.next() != XmlPullParser.END_TAG) {
-            String name = parser.getName();
-            String value = parser.getAttributeValue(0);
-            if (name.equals("parameter") && value.startsWith(n)) {
-                return readParameter(parser);
-            } else
-                skip(parser);
-        }
-        return new ArrayList<>();
-    }
-
-    private List<String> readParameter(XmlPullParser parser) throws XmlPullParserException, IOException {
-        List<String> strings = new ArrayList<>();
-        while (parser.next() != XmlPullParser.END_TAG) {
- *//*           if (parser.getEventType() != XmlPullParser.START_TAG) {
-                continue;
-            }*//*
-            String name = parser.getName();
-
-            if (name.equals("location")) {
-                strings.add(readValue(parser));
-            } else {
-                skip(parser);
-            }
-
-        }
-        return strings;
-    }
-
-    private String readValue(XmlPullParser parser) throws XmlPullParserException, IOException {
-
-        while (parser.next() != XmlPullParser.END_TAG) {
-*//*            if (parser.getEventType() != XmlPullParser.START_TAG) {
-                continue;
-            }*//*
-            String name = parser.getName();
-            if (name.equals("value")) {
-                return readText(parser);
-            }
-
-        }
-        return "";
-    }
-
-    private String readText(XmlPullParser parser) throws IOException, XmlPullParserException {
-        String result = "";
-        if (parser.next() == XmlPullParser.TEXT) {
-            result = parser.getText();
-            parser.nextTag();
-        }
-        return result;
-    }
-
-    private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
-        if (parser.getEventType() != XmlPullParser.START_TAG) {
-            return;
-        }
-        int depth = 1;
-        while (depth != 0) {
-            switch (parser.next()) {
-                case XmlPullParser.END_TAG:
-                    depth--;
-                    break;
-                case XmlPullParser.START_TAG:
-                    depth++;
-                    break;
-            }
-        }
-    }*/
 
     public static int getImage(String code) {
         switch (code) {
@@ -200,62 +95,10 @@ public class DataActivity extends AppCompatActivity {
         binding = DataActivityBinding.inflate(getLayoutInflater());
         EdgeToEdge.enable(this);
         setContentView(binding.getRoot());
-        client = new OkHttpClient();
+
         getData();
     }
 
-    private List<String> parse(String string) {
-        return parse(string, false);
-    }
-
-    private List<String> parse(String string, boolean date) {
-        NodeList parameters = document.getElementsByTagName("parameter");
-        for (int i = 0; i < parameters.getLength(); i++) {
-            Node node = parameters.item(i);
-            String value = node.getAttributes().getNamedItem("name").getNodeValue();
-            if (value.startsWith(string)) {
-                return readParameter(node, date);
-            }
-        }
-        return new ArrayList<>();
-    }
-
-    private List<String> readParameter(Node node, boolean date) {
-        NodeList nodeList = node.getChildNodes();
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Node location = nodeList.item(i);
-            String tagName = location.getNodeName();
-            if (tagName.equals("location")) {
-                if (date) return readDates(location);
-                else return readLocation(location);
-            }
-        }
-        return new ArrayList<>();
-    }
-
-    private List<String> readLocation(Node node) {
-        List<String> items = new ArrayList<>();
-        NodeList nodeList = node.getChildNodes();
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Node location = nodeList.item(i);
-            String tagName = location.getNodeName();
-            String value = location.getTextContent();
-            if (tagName.equals("value")) items.add(value);
-        }
-        return items;
-    }
-
-    private List<String> readDates(Node node) {
-        List<String> items = new ArrayList<>();
-        NodeList nodeList = node.getChildNodes();
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Node location = nodeList.item(i);
-            String tagName = location.getNodeName();
-            String value = location.getAttributes().getNamedItem("date").getNodeValue();
-            if (tagName.equals("value")) items.add(value);
-        }
-        return items;
-    }
 
     private int getIconWind(float wind) {
 
@@ -272,23 +115,22 @@ public class DataActivity extends AppCompatActivity {
 
 
     @SuppressLint("DefaultLocale")
-    private void initData(InputStream inputStream) throws IOException, ParserConfigurationException, SAXException {
-        documentBuilder = factory.newDocumentBuilder();
-        document = documentBuilder.parse(inputStream);
-        List<String> weather_symbols = parse("weather_symbol");
-        List<String> temperatures = parse("t_2m");
-        List<String> temperatureDate = parse("t_2m", true);
-        List<String> wind_speeds = parse("wind_speed");
-        List<String> wind_dir = parse("wind_dir");
+    private void initData() {
+
+        List<String> weather_symbols = RepoNetwork.getInstance().getWeather("weather_symbol");
+        List<String> temperatures = RepoNetwork.getInstance().getWeather("t_2m");
+        List<String> temperatureDate = RepoNetwork.getInstance().getWeather("t_2m", true);
+        List<String> wind_speeds = RepoNetwork.getInstance().getWeather("wind_speed");
+        List<String> wind_dir = RepoNetwork.getInstance().getWeather("wind_dir");
 
 
         float temp = ((Float.parseFloat(temperatures.get(0)) - 32) / 1.8f);
 
-        float max_temp = Float.parseFloat(parse("t_max").get(0));
+        float max_temp = Float.parseFloat(RepoNetwork.getInstance().getWeather("t_max").get(0));
 
 
-        String sunsetStr = parse("sunset").get(0);
-        String sunriseStr = parse("sunrise").get(0);
+        String sunsetStr = RepoNetwork.getInstance().getWeather("sunset").get(0);
+        String sunriseStr = RepoNetwork.getInstance().getWeather("sunrise").get(0);
 
         SimpleDateFormat utc = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
         utc.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -304,11 +146,11 @@ public class DataActivity extends AppCompatActivity {
 
         double percent = percentOfRange(sunset, sunrise, System.currentTimeMillis());
 
-        float min_temp = Float.parseFloat(parse("t_min").get(0));
+        float min_temp = Float.parseFloat(RepoNetwork.getInstance().getWeather("t_min").get(0));
 
         float wind_speed = (Float.parseFloat(wind_speeds.get(0)) * 3.6f);
 
-        List<String> precips = parse("precip");
+        List<String> precips = RepoNetwork.getInstance().getWeather("precip");
         float precip = Float.parseFloat(precips.get(0));
         ;
         float max = 0;
@@ -318,7 +160,7 @@ public class DataActivity extends AppCompatActivity {
 
         precip = precip * 100 / max;
 
-        float uv = Float.parseFloat(parse("uv").get(0));
+        float uv = Float.parseFloat(RepoNetwork.getInstance().getWeather("uv").get(0));
 
         List<DataModel> dataModels = new ArrayList<>();
 
@@ -363,35 +205,11 @@ public class DataActivity extends AppCompatActivity {
         } catch (Exception e) {
         }*/
     }
+
     private void getData() {
-        Request.Builder builder = new Request.Builder();
-        String base64 = java.util.Base64.getEncoder().encodeToString("cloud_maghari_setare:0NI7zP87ou".getBytes());
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String date = dateFormat.format(new Date());
-        builder.url("http://api.meteomatics.com/" + date + "ZP1D:PT1H/wind_speed_10m:ms,wind_dir_10m:d,t_2m:F,weather_symbol_1h:idx,precip_24h:mm,uv:idx,sunset:sql,sunrise:sql,t_max_2m_24h:C,t_min_2m_24h:C/35.721324,51.342037/xml");
-        builder.addHeader("Authorization", "Basic " + base64);
-        Log.i("TAG", "getData: " + date);
-        client.newCall(builder.build()).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Log.i("TAG", "onFailure: " + e.getMessage());
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    try {
-                        //data = response.body().string();
-                        initData(response.body().byteStream());
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    Log.i("TAG", "onFailure: " + response.body().string());
-
-                }
+        RepoNetwork.getInstance().getData((data, isSuccess) -> {
+            if (isSuccess) {
+                initData();
             }
         });
     }
